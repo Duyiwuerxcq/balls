@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        html,
+        body {
+            overflow: hidden;
+        }
+        
+        .arc {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+            left: 20px;
+            top: 30px;
+        }
+        
+        p {
+            -webkit-user-select: none;
+            line-height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <p>点击任意键开始</p>
+    <div class="arc" style="background:pink;z-index:50" id="box"></div>
+</body>
+
+</html>
+<script>
+    var Ball = function (r, x, y, c) {
+        this.w = r * 2;
+        this.h = r * 2;
+        this.x = x;
+        this.y = y;
+        this.c = c;
+        this.r = r;
+        this.init();
+        this.move();
+        this.box = document.getElementById('box');
+    }
+    Ball.prototype = {
+        init: function () {
+            this.ele = document.createElement("div");
+            document.body.appendChild(this.ele);
+            this.ele.className = 'arc';
+        },
+        refresh: function () {
+            this.ele.style.cssText = 'left:' + this.x + 'px; top:' + this.y + 'px; width:' + this.w + 'px; height:' + this.h + 'px; background:' + this.c + ';'
+        },
+        move: function () {
+            var that = this;
+            var ranX = random(3, -3);
+            var ranY = random(3, -3);
+            setInterval(function () {
+                that.x += ranX;
+                that.y += ranY
+                var width = document.documentElement.clientWidth;
+                var height = document.documentElement.clientHeight;
+                if (that.x <= 0) ranX = -ranX;
+                if (that.x >= width - that.w) ranX = -ranX;
+                if (that.y <= 0) ranY = -ranY;
+                if (that.y >= height - that.h) ranY = -ranY;
+                that.refresh();
+                var ox = (that.ele.offsetLeft + that.r) - (that.box.offsetLeft + that.box.offsetWidth / 2);
+                var oy = (that.ele.offsetTop + that.r) - (that.box.offsetTop + that.box.offsetHeight / 2);
+                var or = that.r + that.box.offsetWidth / 2;
+                if (Math.pow(ox, 2) + Math.pow(oy, 2) <= Math.pow(or, 2)) {
+                    alert("GAME OVER");
+                    location.reload();
+                }
+
+            }, 20)
+        }
+    }
+
+    function createBall() {
+        for (var i = 0; i < 20; i++) {
+            var hig = random(70, 20);
+            new Ball(hig, random(300, 150), random(300, 150), ranColor())
+        }
+    }
+
+
+    function random(max, min) {
+        return Math.floor(Math.random() * (max + 1 - min)) + min;
+    }
+
+    function ranColor() {
+        var arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "a", "b", "c", "d", "e", "f"];
+        var str = '#';
+        for (var i = 0; i < 6; i++) {
+            str += arr[random(15, 0)]
+        }
+        return str;
+    }
+    //拖拽
+    function Drag() {
+        this.box = document.getElementById('box');
+        this.init();
+    }
+    Drag.prototype = {
+        init: function () {
+            this.down();
+            this.up();
+        },
+        down: function () {
+            var that = this;
+            this.box.onmousedown = function (e) {
+                that.divX = e.pageX - that.box.offsetLeft;
+                that.divY = e.pageY - that.box.offsetTop;
+                that.move();
+            }
+        },
+        move: function () {
+            var that = this;
+            document.onmousemove = function (e) {
+                var leftX = e.pageX - that.divX;
+                var topY = e.pageY - that.divY;
+                var winl = document.documentElement.clientWidth - that.box.offsetWidth;
+                var wint = document.documentElement.clientHeight - that.box.offsetHeight;
+                if (leftX <= 0) leftX = 0;
+                if (leftX >= winl) leftX = winl;
+                if (topY <= 0) topY = 0;
+                if (topY >= wint) topY = wint;
+                that.box.style.left = leftX + 'px';
+                that.box.style.top = topY + 'px';
+            }
+
+        },
+        up: function () {
+            document.onmouseup = function () {
+                document.onmousemove = null;
+            }
+
+        }
+    }
+    var drages = new Drag();
+    var i = 0;
+    document.addEventListener("keydown", function (e) {
+        if (i == 0) {
+            if (e.keyCode == 13 || e.keyCode == 32) {
+                createBall()
+            }
+        }
+        i++;
+    }, false)
+</script>
